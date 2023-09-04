@@ -1,0 +1,128 @@
+//  Define Time Scale
+`timescale 1ns/1ps
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////     Clock Divider Test_Bench     /////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+module ClkDiv_TB ();
+
+// parameters
+parameter   CLK_PERIOD = 10;
+
+//  DUT Signals
+reg            i_ref_clk_TB;
+reg            i_rst_n_TB;
+reg            i_clk_en_TB;
+reg    [3:0]   i_div_ratio_TB;
+wire           o_div_clk_TB;
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////     Initial     ////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+initial 
+begin
+
+    // System Functions
+        $dumpfile("CRC_DUMP.vcd") ;       
+        $dumpvars;
+
+    // Initialization
+        initialize();
+ 
+    // Reset
+        reset();
+
+    // Test Cases
+        clk_div(4'd0);
+        #(4*CLK_PERIOD);
+        reset();
+
+        clk_div(4'd1);
+        #(4*CLK_PERIOD);
+        reset();
+        
+        clk_div(4'd2);
+        #(10*CLK_PERIOD);
+        reset();
+                
+        clk_div(4'd3);
+        #(10*CLK_PERIOD);
+        reset();
+        
+        clk_div(4'd4);
+        #(10*CLK_PERIOD);
+        reset();
+
+        clk_div(4'd5);
+        #(20*CLK_PERIOD);
+        reset();
+
+        clk_div(4'd15);
+        #(30*CLK_PERIOD);
+        reset();
+
+    #(10*CLK_PERIOD)
+    $stop;
+end
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////     Tasks     ////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+// Initialization
+task initialize ;
+ begin
+    i_ref_clk_TB  = 'b0;
+    i_rst_n_TB  = 'b1;
+ end
+endtask
+
+// Reset technique
+task reset;
+begin
+    // i_clk_en_TB =   'b0; //34an ysfr fel rst m4 3ayzo ytl3 i_ref_clk ana 
+    
+    i_rst_n_TB  =   'b1;
+  #(CLK_PERIOD)
+    i_rst_n_TB  =   'b0;
+  #(CLK_PERIOD)
+    i_rst_n_TB  =   'b1;
+end
+endtask
+
+// Clock_Division
+task clk_div ;
+input   reg     [3:0]   division_ratio;
+
+begin
+    i_div_ratio_TB = division_ratio;
+    i_clk_en_TB = 1'b1;
+end
+endtask
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////     Clock     /////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+// CLock generation
+always #(CLK_PERIOD/2)  i_ref_clk_TB = ~i_ref_clk_TB;
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////     DUT     /////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////
+// DUT instantiation
+ClkDiv DUT (
+    .i_ref_clk(i_ref_clk_TB),
+    .i_rst_n(i_rst_n_TB),
+    .i_clk_en(i_clk_en_TB),
+    .i_div_ratio(i_div_ratio_TB),
+    .o_div_clk(o_div_clk_TB)
+);
+
+
+endmodule
